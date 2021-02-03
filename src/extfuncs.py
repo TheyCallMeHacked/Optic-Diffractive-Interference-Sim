@@ -1,3 +1,5 @@
+import numpy as np
+
 def center(main, w = None, h = None):
     main.title("Our Program")
     main.update_idletasks()
@@ -34,14 +36,23 @@ def set_aspect(content_frame, pad_frame, aspect_ratio):
     pad_frame.bind("<Configure>", enforce_aspect_ratio)
 
 def wave(x, y, mx, s=30, f=1, t=0):
-    import numpy as np
     r1 = np.sqrt(y*y + (x-(mx/2) + s/2)**2)
     r2 = np.sqrt(y*y + (x-(mx/2) - s/2)**2)
     return np.cos(2*np.pi * f * (t - r1)) + np.cos(2*np.pi * f * (t - r2))
 
+def genpattern(xsize, ysize, s=30, f=1, t=0, c=0):
+    out = np.empty((ysize, xsize, 3))
+    for i in range(xsize//2):
+        for j in range(ysize):
+            out[j][i] = hsv2rgb(c, 1, np.interp(wave(i, j, xsize, s, f, t), [-2,2], [0,1])) #hsv2rgb(c, 1, np.interp(wave(j, i, xsize, s, f, t), [-2,2], [0,1]))
+            out[j][-i-1] = out[j][i]
+        #out[i] = [hsv2rgb(c, 1, np.interp(wave(j, i, xsize, s, f, t), [-2,2], [0,1])) for j in range(xsize)]
+        #print(out[i])
+        #out[i] += out[i][::-1]
+    return out
+
 
 def hsv2rgb(h, s, v):
-    import numpy as np
     i = np.floor(h*6)
     f = h*6 - i
     p = v * (1-s)
