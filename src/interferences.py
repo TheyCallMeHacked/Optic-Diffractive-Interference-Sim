@@ -1,5 +1,6 @@
 import tkinter as tk
 from extfuncs import *
+import concurrent.futures
 
 window = tk.Tk()
 
@@ -36,7 +37,7 @@ import numpy as np
 fig = Figure(figsize=(5, 4), dpi=100)
 xpix, ypix = 100, 100
 
-pic = [[hsv2rgb(0, 1, np.interp(wave(j, i, xpix, f=1/7.5), [-2,2], [0,1])) for j in range(xpix)] for i in range(ypix)]
+pic = genpattern(xpix, ypix, f=1/7.5)
 graph = fig.add_subplot(111).imshow(pic)
 
 canvas = FigureCanvasTkAgg(fig, master=plot_frame)  # A tk.DrawingArea.
@@ -52,7 +53,10 @@ def update_wavelength(f):
     global wlc, wlf
     wlc = np.interp(f, [380, 750], [2/3, 0])
     wlf = np.interp(f, [380, 750], [1/3.8, 1/7.5])
-    pic = [[hsv2rgb(wlc, 1, np.interp(wave(j, i, xpix, f=wlf), [-2,2], [0,1])) for j in range(xpix)] for i in range(ypix)]
+    global pic
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(genpattern, xpix, ypix, 30, wlf, 0, wlc)
+        pic = future.result()#genpattern(xpix, ypix, f=wlf, c=wlc)
     graph.set_data(pic)
     canvas.draw()
 
